@@ -16,10 +16,13 @@ bot = Bot(token)
 dp = Dispatcher(bot)
 
 def create_file(filename):
-    file_exists = os.path.isfile(filename) 
+    dir_exist = os.path.exists('data')
+    if dir_exist is False:
+        os.mkdir('data')
+    file_exists = os.path.isfile(filename)
     if file_exists is False:
         f = open(filename, 'w')
-
+        
 def get_last_id():
     with open('data/lastid.txt', 'r') as f:
         return f.read() 
@@ -34,10 +37,14 @@ def get_online_players():
         return full_stats['players']
 
 def get_message():
-    msg = 'Players are now online:\n\n'
-    for i, name in enumerate(get_online_players(), 1):
-        msg += f'{str(i)}. {name}\n'
-    return msg[:-1]
+    message = 'Players are now online:\n\n'
+    players = get_online_players()
+    if len(players) == 0:
+        return f'{message}No one is playing now...'        
+    else:
+        for i, name in enumerate(players, 1):
+            message += f'{str(i)}. {name}\n'
+        return message[:-1]
 
 @dp.message_handler(commands=['start'])
 async def send_start(message: types.Message):
@@ -68,12 +75,11 @@ async def update_message():
                 msg = await bot.edit_message_text(text=get_message(), chat_id=channel, message_id=last_id)
                 with open('data/lastmsg.txt', 'w') as f:
                     f.write(str(msg.text))
+                continue
         except BadRequest:
             last_id = get_last_id()
             await bot.send_message(chat_id=admin, text="An error occurred.\nClick /start to fix it. Maybe it won't help.")
             await asyncio.sleep(600)
-        except:
-             await bot.send_message(chat_id=admin, text="Unknown error while editing the message.")
 
 async def on_startup(_):
     asyncio.create_task(update_message())
