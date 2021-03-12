@@ -1,0 +1,9 @@
+  
+.idea/
+__pychache__/
+venv/
+data/
+.git/
+.gitignore
+docker-compose.yml
+Dockerfile
